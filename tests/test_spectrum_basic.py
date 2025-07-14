@@ -1,12 +1,17 @@
 import os
+import sys
 import json
 import torch
 import torch.nn as nn
 import tempfile
 import shutil
-from spectrum.spectrum import ModelModifier
 from collections import OrderedDict
 import transformers
+
+# Add the parent directory to the Python path so we can import spectrum
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+from spectrum.spectrum import ModelModifier
 
 
 # Define dummy LLM-like model

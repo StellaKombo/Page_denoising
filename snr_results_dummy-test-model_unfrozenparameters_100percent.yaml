@@ -3,7 +3,7 @@ unfrozen_parameters:
 - ^model.embed_tokens.weight$
 # model.proj2 layers
 - model.proj2
-# model.proj3 layers
-- model.proj3
 # model.proj1 layers
 - model.proj1
+# model.proj3 layers
+- model.proj3

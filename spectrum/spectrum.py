@@ -107,6 +107,10 @@ class ModelModifier:
                             # Skip this layer if it's on meta device and we can't process it
                             self.layer_snr[name] = {'type': layer_type, 'snr': float('nan')}
                             continue
+                        
+                        # Convert to float32 if needed for SVD operations (float16 is not supported)
+                        if weights.dtype == torch.float16:
+                            weights = weights.float()
                             
                         if weights.ndim < 2:
                             weights = weights.unsqueeze(0)
@@ -154,6 +158,8 @@ class ModelModifier:
                             
                             snr = signal / noise if noise != 0 else float('inf')
                             snr_ratio = snr / max_singular_value
+                            
+                            print(f"[DEBUG] Layer: {name}, #Signal: {signal_mask.sum()}, #Noise: {noise_mask.sum()}")
                         
                         #self.layer_snr[name] = {'type': layer_type, 'snr': snr_ratio.item()}
                         self.layer_snr[name] = {'type': layer_type, 'snr': snr_ratio.item() if hasattr(snr_ratio, 'item') else snr_ratio}
@@ -163,14 +169,17 @@ class ModelModifier:
                         # Set a default value for this layer
                         self.layer_snr[name] = {'type': layer_type, 'snr': float('nan')}
                 
-                print(f"[DEBUG] Layer: {name}, #Signal: {signal_mask.sum()}, #Noise: {noise_mask.sum()}")       
                 progress_bar.update(1)
 
     @staticmethod
     def get_optimal_L(weight_matrix: np.ndarray) -> int:
         d = weight_matrix.shape[0]
         L = int(0.25 * d)
-        L = 2 ** int(np.round(np.log2(L)))
+        # Handle edge case where L is 0 or very small
+        if L <= 0:
+            L = min(64, d)
+        else:
+            L = 2 ** int(np.round(np.log2(L)))
         return min(max(64, L), d)
 
     @staticmethod
